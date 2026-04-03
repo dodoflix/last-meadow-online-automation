@@ -55,14 +55,14 @@ async function build() {
   await zipDir(chromeTmp, path.join(DIST, 'chrome-extension.zip'));
   fs.rmSync(chromeTmp, { recursive: true });
 
-  // 3. Build Firefox extension (full manifest with gecko settings)
+  // 3. Build Firefox extension (full manifest with gecko settings, background.scripts instead of service_worker)
   console.log('→ Building Firefox extension...');
   const ffTmp = path.join(DIST, '_firefox');
   fs.mkdirSync(path.join(ffTmp, 'icons'), { recursive: true });
 
-  fs.writeFileSync(path.join(ffTmp, 'manifest.json'), JSON.stringify(
-    JSON.parse(fs.readFileSync(path.join(EXT_DIR, 'manifest.json'), 'utf8')), null, 2
-  ));
+  const ffManifest = JSON.parse(fs.readFileSync(path.join(EXT_DIR, 'manifest.json'), 'utf8'));
+  ffManifest.background = { scripts: ['background.js'] };
+  fs.writeFileSync(path.join(ffTmp, 'manifest.json'), JSON.stringify(ffManifest, null, 2));
   fs.copyFileSync(BG, path.join(ffTmp, 'background.js'));
   fs.copyFileSync(BRIDGE, path.join(ffTmp, 'bridge.js'));
   fs.copyFileSync(LOADER, path.join(ffTmp, 'loader.js'));
