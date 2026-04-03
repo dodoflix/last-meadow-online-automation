@@ -2,7 +2,7 @@
 
 > ⚠️ For educational purposes only — use at your own risk.
 
-Automates adventure, crafting, and battle cycles for [Last Meadow Online](https://discord.com/) on Discord.
+Automates adventure, crafting, and battle cycles for [Last Meadow Online](https://discord.com/last-meadow-online) on Discord.
 
 ## Installation
 
