@@ -24,7 +24,7 @@
 :host{font-family:'gg sans','Segoe UI',sans-serif;font-size:13px;color:#dcddde}
 *{box-sizing:border-box;margin:0;padding:0}
 #panel{display:flex;flex-direction:column;width:100%;height:100%;background:#1a1b1e;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.06);overflow:hidden;position:relative}
-#panel.min #body,#panel.min #footer,#panel.min #res-bar,#panel.min .rh{display:none!important}
+#panel.min #body,#panel.min #footer,#panel.min #res-bar,#panel.min #loot-bar,#panel.min .rh{display:none!important}
 #header{display:flex;align-items:center;padding:0 6px 0 14px;background:linear-gradient(135deg,#1e2024,#25272b);border-bottom:1px solid rgba(255,255,255,.06);height:42px;gap:4px;cursor:move;user-select:none;flex-shrink:0;overflow:hidden}
 .title{font-weight:700;font-size:14px;margin-right:auto;color:#fff;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .title span{color:#5865f2}
@@ -48,7 +48,7 @@
 .rs{color:#3f4147;margin:0 2px}
 .lvl{color:#faa61a;font-weight:800;font-size:12px}
 #body{flex:1;padding:10px 14px;overflow:hidden;display:flex;flex-direction:column;min-height:0}
-.tc{display:none;flex-direction:column;flex:1;min-height:0}
+.tc{display:none;flex-direction:column;flex:1;min-height:0;position:relative}
 .tc.active{display:flex}
 .cfg{margin-bottom:8px;background:rgba(0,0,0,.15);border-radius:10px;padding:8px 10px;flex-shrink:0}
 .cr{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
@@ -95,7 +95,24 @@
 #footer .wn{color:#4f5660;font-size:10px}
 .rh{position:absolute;bottom:0;right:0;width:18px;height:18px;cursor:nwse-resize;opacity:.3;transition:opacity .15s;border-radius:0 0 14px 0}
 .rh:hover{opacity:.7}
-.rh::after{content:'';position:absolute;bottom:4px;right:4px;width:7px;height:7px;border-right:2px solid #72767d;border-bottom:2px solid #72767d}`;
+.rh::after{content:'';position:absolute;bottom:4px;right:4px;width:7px;height:7px;border-right:2px solid #72767d;border-bottom:2px solid #72767d}
+.prog-wrap{height:3px;background:rgba(255,255,255,.06);border-radius:2px;margin:2px 0 6px;overflow:hidden}
+.prog-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,#5865f2,#7983f5);width:100%;transition:width .15s linear}
+@keyframes lootFloat{0%{opacity:1;transform:translate(-50%,0)}60%{opacity:.9}100%{opacity:0;transform:translate(-50%,-50px)}}
+.loot-pop{position:absolute;top:50%;left:50%;font-size:13px;font-weight:800;pointer-events:none;animation:lootFloat 1.8s ease-out forwards;z-index:10;white-space:nowrap;text-shadow:0 2px 6px rgba(0,0,0,.6);color:#3ba55d}
+.xp-wrap{display:flex;align-items:center;gap:4px;margin-left:2px}
+.xp-outer{height:4px;background:rgba(255,255,255,.08);border-radius:2px;width:60px;overflow:hidden}
+.xp-inner{height:100%;background:linear-gradient(90deg,#faa61a,#f57731);border-radius:2px;transition:width .5s ease;width:0}
+.xp-text{color:#72767d;font-size:8px;font-weight:600;white-space:nowrap}
+#loot-bar{display:flex;align-items:center;gap:6px;padding:3px 14px;background:rgba(59,165,93,.05);border-bottom:1px solid rgba(255,255,255,.03);font-size:10px;flex-shrink:0;flex-wrap:wrap;overflow-x:auto;white-space:nowrap}
+#loot-bar:empty{display:none}
+#loot-bar .lt{color:#4f5660;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+#loot-bar .li{display:inline-flex;align-items:center;gap:2px;font-weight:700;font-size:10px}
+#loot-bar .li.pos{color:#3ba55d}
+#loot-bar .li.neg{color:#ed4245}
+.snd-on{color:#3ba55d!important}
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:14px;height:14px;border-radius:7px;background:#ed4245;color:#fff;font-size:8px;font-weight:800;margin-left:2px;padding:0 3px;line-height:1}
+.badge.hide{display:none}`;
   shadow.appendChild(style);
 
   function fmtMs(ms) {
@@ -124,6 +141,93 @@
 
   var DEFAULTS = { gather: { delay: 10, max: 0 }, craft: { delay: 60000, max: 0 }, combat: { delay: 60000, max: 0 } };
 
+  // Loot popup animation
+  function showLootPop(text, container) {
+    var pop = document.createElement('div');
+    pop.className = 'loot-pop';
+    pop.textContent = text;
+    container.style.position = 'relative';
+    container.appendChild(pop);
+    setTimeout(function() { pop.remove(); }, 2000);
+  }
+
+  // Session loot tracker
+  var _sessionLoot = {};
+  function trackLoot(changes) {
+    if (!changes) return;
+    for (var k in changes) {
+      _sessionLoot[k] = (_sessionLoot[k] || 0) + changes[k];
+    }
+    renderSessionLoot();
+  }
+  function renderSessionLoot() {
+    var el = $('loot-bar');
+    if (!el) return;
+    var keys = Object.keys(_sessionLoot);
+    if (!keys.length) { el.innerHTML = ''; return; }
+    var html = '<span class="lt">\uD83D\uDCB0 Session</span>';
+    keys.forEach(function(k) {
+      var v = _sessionLoot[k];
+      var ic = ICONS[k] || '\uD83D\uDCE6';
+      var cls = v >= 0 ? 'pos' : 'neg';
+      html += '<span class="li ' + cls + '">' + ic + ' ' + (v > 0 ? '+' : '') + fmtNum(v) + '</span>';
+    });
+    el.innerHTML = html;
+  }
+
+  // Sound pings (AudioContext)
+  var _soundEnabled = false;
+  var _audioCtx = null;
+  function playSound(type) {
+    if (!_soundEnabled) return;
+    if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var osc = _audioCtx.createOscillator();
+    var gain = _audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(_audioCtx.destination);
+    gain.gain.value = 0.08;
+    if (type === 'success') {
+      osc.frequency.value = 880; osc.type = 'sine';
+      gain.gain.setValueAtTime(0.08, _audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, _audioCtx.currentTime + 0.3);
+      osc.start(); osc.stop(_audioCtx.currentTime + 0.3);
+    } else if (type === 'error') {
+      osc.frequency.value = 220; osc.type = 'square';
+      gain.gain.setValueAtTime(0.05, _audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, _audioCtx.currentTime + 0.2);
+      osc.start(); osc.stop(_audioCtx.currentTime + 0.2);
+    } else if (type === 'loot') {
+      osc.frequency.value = 660; osc.type = 'sine';
+      gain.gain.setValueAtTime(0.06, _audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, _audioCtx.currentTime + 0.15);
+      osc.start(); osc.stop(_audioCtx.currentTime + 0.15);
+      var osc2 = _audioCtx.createOscillator();
+      var gain2 = _audioCtx.createGain();
+      osc2.connect(gain2); gain2.connect(_audioCtx.destination);
+      osc2.frequency.value = 990; osc2.type = 'sine';
+      gain2.gain.setValueAtTime(0.06, _audioCtx.currentTime + 0.12);
+      gain2.gain.exponentialRampToValueAtTime(0.001, _audioCtx.currentTime + 0.35);
+      osc2.start(_audioCtx.currentTime + 0.12); osc2.stop(_audioCtx.currentTime + 0.35);
+    }
+  }
+
+  // Tab notification badges
+  var _badges = { gather: 0, craft: 0, combat: 0 };
+  var _activeTab = 'gather';
+  function bumpBadge(prefix) {
+    if (prefix === _activeTab) return;
+    _badges[prefix]++;
+    var el = $(prefix + '-badge');
+    if (!el) return;
+    el.textContent = _badges[prefix] > 99 ? '99+' : _badges[prefix];
+    el.classList.remove('hide');
+  }
+  function clearBadge(prefix) {
+    _badges[prefix] = 0;
+    var el = $(prefix + '-badge');
+    if (el) el.classList.add('hide');
+  }
+
   function mkTab(id) {
     var dd = DEFAULTS[id].delay;
     return '<div id="' + id + '" class="tc">'
@@ -143,12 +247,14 @@
       + '<div class="stat"><b id="' + id + '-sF">0</b><small>Fail</small></div>'
       + '<div class="stat"><b id="' + id + '-sN">-</b><small>Next</small></div>'
       + '</div>'
+      + '<div class="prog-wrap"><div class="prog-bar" id="' + id + '-prog" style="width:0"></div></div>'
       + '<div class="btns">'
       + '<button class="b1" id="' + id + '-bOnce">\u25B6 Once</button>'
       + '<button class="b2" id="' + id + '-bStart">\u23E9 Loop</button>'
       + '<button class="b3" id="' + id + '-bStop" disabled>\u23F9 Stop</button>'
       + '<button class="b4" id="' + id + '-bClear">\uD83D\uDDD1</button>'
       + '<button class="b5" id="' + id + '-bReset">\u21BA</button>'
+      + '<button class="b5" id="' + id + '-bExport" title="Copy log">\uD83D\uDCCB</button>'
       + '</div>'
       + '<div class="log" id="' + id + '-log"></div></div>';
   }
@@ -158,17 +264,18 @@
   panel.innerHTML = '<div id="header">'
     + '<span class="title">\uD83C\uDF3F Last <span>Meadow</span></span>'
     + '<div class="tab-bar">'
-    + '<button class="tb active" data-tab="gather">\uD83C\uDF3E Adv<span class="dot" id="gather-dot"></span></button>'
-    + '<button class="tb" data-tab="craft">\u2692\uFE0F Craft<span class="dot" id="craft-dot"></span></button>'
-    + '<button class="tb" data-tab="combat">\u2694\uFE0F Battle<span class="dot" id="combat-dot"></span></button>'
+    + '<button class="tb active" data-tab="gather">\uD83C\uDF3E Adv<span class="dot" id="gather-dot"></span><span class="badge hide" id="gather-badge"></span></button>'
+    + '<button class="tb" data-tab="craft">\u2692\uFE0F Craft<span class="dot" id="craft-dot"></span><span class="badge hide" id="craft-badge"></span></button>'
+    + '<button class="tb" data-tab="combat">\u2694\uFE0F Battle<span class="dot" id="combat-dot"></span><span class="badge hide" id="combat-badge"></span></button>'
     + '<button class="tb" data-tab="stats">\uD83D\uDCCA Stats</button>'
     + '</div>'
     + '<button id="sniff-btn" style="background:#ed4245">\uD83D\uDD0D Sniff</button>'
+    + '<button class="hb" id="snd-btn" title="Toggle Sound">\uD83D\uDD07</button>'
     + '<button class="hb" id="min-btn" title="Minimize">\u2500</button>'
     + '<button class="hb" id="close-btn" title="Close">\u2715</button>'
     + '</div>'
     + '<div id="res-bar">'
-    + '<span class="ri"><span class="lvl" id="rb-lvl">--</span></span>'
+    + '<span class="ri"><span class="lvl" id="rb-lvl">--</span><span class="xp-wrap"><span class="xp-outer"><span class="xp-inner" id="rb-xp-bar"></span></span><span class="xp-text" id="rb-xp-text"></span></span></span>'
     + '<span class="rs">\u2502</span>'
     + '<span class="ri">\uD83E\uDEB5 <span class="rv" id="rb-wood">-</span></span>'
     + '<span class="ri">\u2699\uFE0F <span class="rv" id="rb-metal">-</span></span>'
@@ -177,6 +284,7 @@
     + '<span class="ri">\uD83D\uDEE1\uFE0F <span class="rv" id="rb-armor">-</span></span>'
     + '<span class="ri">\uD83D\uDCA5 <span class="rv" id="rb-dmg">-</span></span>'
     + '</div>'
+    + '<div id="loot-bar"></div>'
     + '<div id="body">' + mkTab('gather') + mkTab('craft') + mkTab('combat')
     + '<div id="stats" class="tc">'
     + '<div class="sp"><div class="sh">\uD83D\uDC64 Your Profile</div><div id="st-profile"><span class="sk">Sniff credentials to load...</span></div></div>'
@@ -207,6 +315,13 @@
       $('rb-leather').textContent = c.leather || 0;
       $('rb-armor').textContent = c.armor || 0;
       $('rb-dmg').textContent = c.enemy_damage || 0;
+    }
+    if (ud.xp !== undefined) {
+      $('rb-xp-text').textContent = fmtNum(ud.xp) + ' XP';
+      var lvl = ud.level || 1;
+      var needed = lvl * 100;
+      var pct = Math.min(100, ((ud.xp % needed) / needed) * 100);
+      $('rb-xp-bar').style.width = pct + '%';
     }
   }
 
@@ -346,7 +461,10 @@
       shadow.querySelectorAll('.tb').forEach(function(b) { b.classList.remove('active'); });
       shadow.querySelectorAll('.tc').forEach(function(c) { c.classList.remove('active'); });
       btn.classList.add('active');
-      $(btn.getAttribute('data-tab')).classList.add('active');
+      var tab = btn.getAttribute('data-tab');
+      $(tab).classList.add('active');
+      _activeTab = tab;
+      if (_badges[tab] !== undefined) clearBadge(tab);
     });
   });
 
@@ -490,7 +608,7 @@
   function createWorker(prefix, activity, opts) {
     opts = opts || {};
     var successDelay = opts.successDelay || 0;
-    var W = { running: false, timer: null, cd: null, nextAt: null, runs: 0, ok: 0, fail: 0 };
+    var W = { running: false, timer: null, cd: null, nextAt: null, totalWait: 0, runs: 0, ok: 0, fail: 0 };
     var reqMats = null; // learned from first successful start (keys with negative changes)
 
     function log(m, c) {
@@ -501,6 +619,7 @@
       el.appendChild(d);
       while (el.childNodes.length > 50) el.removeChild(el.firstChild);
       el.scrollTop = el.scrollHeight;
+      if (c !== 'd') bumpBadge(prefix);
     }
     function upStats() {
       $(prefix + '-sR').textContent = W.runs;
@@ -539,7 +658,7 @@
           W.fail++; upStats(); return 'fail';
         }
         var sc = s.data && s.data.changes;
-        if (sc && Object.keys(sc).length) log('\uD83D\uDCE6 ' + fmtChanges(sc), 'w');
+        if (sc && Object.keys(sc).length) { log('\uD83D\uDCE6 ' + fmtChanges(sc), 'w'); trackLoot(sc); }
         // Learn required materials from start changes (negative values = consumed)
         if (sc && !reqMats && successDelay > 0) {
           reqMats = {};
@@ -559,12 +678,16 @@
           W.fail++; upStats(); return 'fail';
         }
         var cc = c.data && c.data.changes;
-        if (cc && Object.keys(cc).length) log('\u2728 ' + fmtChanges(cc), 's');
-        else log('\u2705 Done', 's');
+        if (cc && Object.keys(cc).length) {
+          log('\u2728 ' + fmtChanges(cc), 's');
+          trackLoot(cc);
+          showLootPop('\u2728 ' + fmtChanges(cc), $(prefix));
+          playSound('loot');
+        } else log('\u2705 Done', 's');
 
         W.ok++; upStats(); return 'ok';
       } catch (e) {
-        log('\u2716 ' + e.message, 'e'); W.fail++; upStats(); return 'fail';
+        log('\u2716 ' + e.message, 'e'); playSound('error'); W.fail++; upStats(); return 'fail';
       } finally {
         if (prefix !== 'gather' && _gatherPaused) {
           resumeGather();
@@ -586,9 +709,13 @@
       setSt(true); log('\uD83D\uDD01 Loop started', 'i');
 
       W.cd = setInterval(function() {
-        if (!W.nextAt) { $(prefix + '-sN').textContent = '-'; return; }
+        var prog = $(prefix + '-prog');
+        if (!W.nextAt) { $(prefix + '-sN').textContent = '-'; prog.style.width = '0'; return; }
         var left = Math.max(0, W.nextAt - Date.now());
         $(prefix + '-sN').textContent = left > 1000 ? Math.round(left / 1000) + 's' : left + 'ms';
+        var total = W.totalWait || 1;
+        var pct = (left / total) * 100;
+        prog.style.width = pct + '%';
       }, 200);
 
       async function tick() {
@@ -623,14 +750,14 @@
         if (!W.running) return;
         if (result === 'fail') {
           var ms = getVal(prefix + '-delay');
-          W.nextAt = Date.now() + ms;
+          W.totalWait = ms; W.nextAt = Date.now() + ms;
           log('\u23F0 Retry in ' + fmtMs(ms), 'w');
           W.timer = setTimeout(tick, ms);
         } else if (successDelay > 0) {
-          W.nextAt = Date.now() + successDelay;
+          W.totalWait = successDelay; W.nextAt = Date.now() + successDelay;
           log('\u23F0 Cooldown ' + fmtMs(successDelay), 'i');
           W.timer = setTimeout(tick, successDelay);
-        } else { W.nextAt = null; tick(); }
+        } else { W.totalWait = 0; W.nextAt = null; tick(); }
       }
       await tick();
     });
@@ -638,7 +765,8 @@
     function stopLoop() {
       W.running = false;
       clearTimeout(W.timer); clearInterval(W.cd);
-      W.nextAt = null; $(prefix + '-sN').textContent = '-';
+      W.totalWait = 0; W.nextAt = null; $(prefix + '-sN').textContent = '-';
+      $(prefix + '-prog').style.width = '0';
       $(prefix + '-bStart').disabled = false;
       $(prefix + '-bStop').disabled = true;
       setSt(false); log('\u23F9 Stopped', 'w');
@@ -655,6 +783,15 @@
       $(prefix + '-log').innerHTML = '';
       log('\u21BA Reset', 'i');
     });
+    $(prefix + '-bExport').addEventListener('click', function() {
+      var logEl = $(prefix + '-log');
+      var text = Array.from(logEl.childNodes).map(function(n) { return n.textContent; }).join('\n');
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() { log('\uD83D\uDCCB Log copied!', 'i'); });
+      } else {
+        log('\uD83D\uDCCB Clipboard not available', 'e');
+      }
+    });
 
     log('\u2705 Ready', 's');
     return { stopLoop: stopLoop };
@@ -665,6 +802,17 @@
   var bW = createWorker('combat', 'combat', { successDelay: 180000 });
 
   $('sniff-btn').addEventListener('click', function() { startSniff(); });
+  $('snd-btn').addEventListener('click', function() {
+    _soundEnabled = !_soundEnabled;
+    $('snd-btn').textContent = _soundEnabled ? '\uD83D\uDD14' : '\uD83D\uDD07';
+    $('snd-btn').classList.toggle('snd-on', _soundEnabled);
+    if (_soundEnabled) playSound('loot');
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.getElementById('lmo-wrap')) {
+      $('min-btn').click();
+    }
+  });
   startSniff();
 
   // Auto-refresh stats every 60s
