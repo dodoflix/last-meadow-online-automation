@@ -385,10 +385,12 @@
   async function fetchStats() {
     if (!_sniffed) return;
     try {
-      var r1 = await fetch('https://discord.com/api/v9/gorilla/user-data/@me', { headers: hdrs() });
-      if (r1.ok) { var ud = await r1.json(); updateResBar(ud); renderProfile(ud); }
-      var r2 = await fetch('https://discord.com/api/v9/gorilla/counters', { headers: hdrs() });
-      if (r2.ok) { var ct = await r2.json(); renderCounters(ct); }
+      var results = await Promise.all([
+        fetch('https://discord.com/api/v9/gorilla/user-data/@me', { headers: hdrs() }),
+        fetch('https://discord.com/api/v9/gorilla/counters', { headers: hdrs() })
+      ]);
+      if (results[0].ok) { var ud = await results[0].json(); updateResBar(ud); renderProfile(ud); }
+      if (results[1].ok) { var ct = await results[1].json(); renderCounters(ct); }
     } catch (e) { console.log('[LMO] Stats fetch error:', e); }
   }
 
@@ -756,7 +758,7 @@
           W.totalWait = successDelay; W.nextAt = Date.now() + successDelay;
           log('\u23F0 Cooldown ' + fmtMs(successDelay), 'i');
           W.timer = setTimeout(tick, successDelay);
-        } else { W.totalWait = 0; W.nextAt = null; tick(); }
+        } else { W.totalWait = 0; W.nextAt = null; W.timer = setTimeout(tick, 50); }
       }
       await tick();
     });
