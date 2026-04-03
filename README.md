@@ -131,14 +131,14 @@ Build artifacts are output to `dist/`:
 
 ### CI/CD
 
-Releases are automated via GitHub Actions. To create a new release:
+Releases are automated via [release-please](https://github.com/googleapis/release-please). Push conventional commits (`feat:`, `fix:`, `perf:`, etc.) to `main` and a release PR is created automatically. Merging the PR triggers a build and publishes a new GitHub Release with all artifacts.
 
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
+### Auto-Update
 
-This triggers the release workflow which builds all artifacts and creates a GitHub Release.
+The browser extension uses a lightweight loader that fetches the latest `console-script.min.js` from GitHub Releases at runtime. This means:
+- **No extension updates needed** — you always get the latest script automatically
+- Scripts are cached locally for 1 hour for instant page loads
+- The panel footer shows your current version and notifies when updates are available
 
 ## ⚠️ Disclaimer
 
@@ -146,4 +146,4 @@ This script is provided **for educational purposes only** to demonstrate browser
 
 ## 📝 License
 
-MIT — [@dodoflix](https://github.com/dodoflix)
+MIT — [Dogukan Metan](https://github.com/dodoflix)

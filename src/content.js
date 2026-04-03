@@ -5,6 +5,8 @@
 // Repository: https://github.com/dodoflix/last-meadow-online-automation
 // License: MIT
 (() => {
+  const LMO_VERSION = '1.2.0'; // x-release-please-version
+  const LMO_REPO = 'dodoflix/last-meadow-online-automation';
   const old = document.getElementById('lmo-wrap');
   if (old) { old.remove(); return console.log('[LMO] Removed.'); }
 
@@ -93,6 +95,10 @@
 #footer a{color:#5865f2;text-decoration:none;font-size:11px;font-weight:600;transition:color .15s}
 #footer a:hover{color:#7983f5}
 #footer .wn{color:#4f5660;font-size:10px}
+#footer .ver{color:#4f5660;font-size:9px;font-weight:600}
+#footer .upd{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;text-decoration:none;transition:all .15s;display:none}
+#footer .upd.avail{display:inline-block;background:rgba(88,101,242,.15);color:#7983f5}
+#footer .upd.avail:hover{background:rgba(88,101,242,.25)}
 .rh{position:absolute;bottom:0;right:0;width:18px;height:18px;cursor:nwse-resize;opacity:.3;transition:opacity .15s;border-radius:0 0 14px 0}
 .rh:hover{opacity:.7}
 .rh::after{content:'';position:absolute;bottom:4px;right:4px;width:7px;height:7px;border-right:2px solid #72767d;border-bottom:2px solid #72767d}
@@ -296,6 +302,8 @@
     + '</div>'
     + '<div id="footer">'
     + '<a href="https://github.com/dodoflix" target="_blank">@dodoflix</a>'
+    + '<span class="ver">v' + LMO_VERSION + '</span>'
+    + '<a id="upd-link" class="upd" href="https://github.com/' + LMO_REPO + '/releases/latest" target="_blank"></a>'
     + '<span class="wn">\u26A0\uFE0F Educational Only</span>'
     + '</div>'
     + '<div class="rh" id="resize-handle"></div>';
@@ -828,6 +836,21 @@
       $('stats-refresh').textContent = '\uD83D\uDD04 Refresh';
     });
   });
+
+  // Check for updates
+  (function checkUpdate() {
+    fetch('https://api.github.com/repos/' + LMO_REPO + '/releases/latest')
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(d) {
+        if (!d || !d.tag_name) return;
+        var remote = d.tag_name.replace(/^[^0-9]*/, '');
+        if (remote && remote !== LMO_VERSION) {
+          var el = $('upd-link');
+          el.textContent = '\uD83C\uDD95 v' + remote;
+          el.classList.add('avail');
+        }
+      }).catch(function() {});
+  })();
 
   $('close-btn').addEventListener('click', function() {
     gW.stopLoop(); cW.stopLoop(); bW.stopLoop();
