@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Last Meadow Online Automation",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Activity automation tool for Last Meadow Online on Discord. For educational purposes only.",
   "author": "dodoflix",
   "homepage_url": "https://github.com/dodoflix/last-meadow-online-automation",
@@ -12,8 +12,14 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://discord.com/*", "https://ptb.discord.com/*", "https://canary.discord.com/*"],
-      "js": ["content.js"],
+      "matches": [
+        "https://discord.com/*",
+        "https://ptb.discord.com/*",
+        "https://canary.discord.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_idle",
       "world": "MAIN"
     }
