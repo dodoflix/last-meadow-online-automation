@@ -833,8 +833,8 @@
     });
   });
 
-  // Check for updates
-  (function checkUpdate() {
+  // Check for updates (runs once + every 10 min)
+  function checkUpdate() {
     fetch('https://api.github.com/repos/' + LMO_REPO + '/releases/latest')
       .then(function(r) { return r.ok ? r.json() : null; })
       .then(function(d) {
@@ -846,11 +846,15 @@
           el.classList.add('avail');
         }
       }).catch(function() {});
-  })();
+  }
+  checkUpdate();
+  var _updateInterval = setInterval(function() {
+    if (!document.hidden) checkUpdate();
+  }, 600000);
 
   $('close-btn').addEventListener('click', function() {
     gW.stopLoop(); cW.stopLoop(); bW.stopLoop();
-    clearInterval(_statsInterval);
+    clearInterval(_statsInterval); clearInterval(_updateInterval);
     window.fetch = _origFetch;
     XMLHttpRequest.prototype.open = _origOpen;
     XMLHttpRequest.prototype.setRequestHeader = _origSetH;
