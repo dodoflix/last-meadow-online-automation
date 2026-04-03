@@ -2,16 +2,34 @@
 
 > **⚠️ FOR EDUCATIONAL PURPOSES ONLY** — Use at your own risk. This script is not affiliated with Discord or Last Meadow Online.
 
-A browser DevTools automation script for [Last Meadow Online](https://discord.com/), the Discord-based idle RPG activity. It automates gathering, crafting, and combat cycles with a sleek floating UI panel.
+A browser automation tool for [Last Meadow Online](https://discord.com/), the Discord-based idle RPG activity. Available as a **browser extension** (Chrome + Firefox) or a **console script**. It automates gathering, crafting, and combat cycles with a sleek floating UI panel.
 
-## 🚀 How to Use
+## 📦 Installation
 
-1. **Open Discord** in your browser (not the desktop app) at [discord.com](https://discord.com)
-2. **Open DevTools** — Press `F12` or `Ctrl+Shift+I` (Windows/Linux) / `Cmd+Option+I` (Mac)
+### Option 1: Browser Extension (Recommended)
+
+Download the latest release from the [Releases page](https://github.com/dodoflix/last-meadow-online-automation/releases):
+
+**Chrome / Edge / Brave:**
+1. Download `chrome-extension.zip` from the latest release
+2. Unzip the file to a folder
+3. Go to `chrome://extensions` → enable **Developer mode**
+4. Click **Load unpacked** → select the unzipped folder
+5. Navigate to [discord.com](https://discord.com) — the panel appears automatically
+
+**Firefox:**
+1. Download `firefox-extension.zip` from the latest release
+2. Go to `about:debugging#/runtime/this-firefox`
+3. Click **Load Temporary Add-on** → select the zip file
+4. Navigate to [discord.com](https://discord.com) — the panel appears automatically
+
+### Option 2: Console Script
+
+1. **Open Discord** in your browser at [discord.com](https://discord.com)
+2. **Open DevTools** — Press `F12` or `Ctrl+Shift+I` / `Cmd+Option+I`
 3. **Go to the Console tab**
-4. **Copy the entire script** from [`last-meadow-online-automation.js`](last-meadow-online-automation.js)
+4. **Copy the script** from [`src/content.js`](src/content.js) (or download `console-script.min.js` from [Releases](https://github.com/dodoflix/last-meadow-online-automation/releases))
 5. **Paste it into the console** and press `Enter`
-6. A floating panel will appear in the top-right corner
 
 > 💡 **Tip:** To remove the panel, paste the script again or click the ✕ button.
 
@@ -73,9 +91,20 @@ Lv.100 │ 🪵 2008 ⚙️ 1936 🧶 1956 │ 🛡️ 17 💥 7
 ## 🖱️ UI Features
 
 - **Drag** the header to move the panel
-- **Resize** from the bottom-right corner (min 320×380, max 600×800)
-- **Minimize** with the `─` button (header-only mode, activity dots still visible)
+- **Resize** from the bottom-right corner (min 380×460, max 600×800)
+- **Minimize** with the `─` button or press `Esc` (header-only mode, activity dots still visible)
 - **Close** with `✕` (cleanly restores all intercepted functions)
+
+### New in Latest Version
+
+- 🎯 **Progress bars** — Animated countdown bars for retry/cooldown timers
+- ✨ **Loot popups** — Float-up RPG-style text on loot drops
+- 📊 **XP bar** — Level progress bar in the resource bar
+- 💰 **Session tracker** — Running total of all resources gained this session
+- 🔔 **Sound pings** — Toggle audio feedback for events (🔇 button)
+- 📋 **Export logs** — Copy tab logs to clipboard
+- ⌨️ **Keyboard shortcut** — Press `Esc` to minimize/expand
+- 🔢 **Tab badges** — Red notification count on inactive tabs
 
 ## 🛠️ Technical Details
 
@@ -84,6 +113,32 @@ Lv.100 │ 🪵 2008 ⚙️ 1936 🧶 1956 │ 🛡️ 17 💥 7
 - **Fetch interception** as backup capture method
 - **Button-based controls** (Discord's capture-phase keyboard listeners block text inputs)
 - **Rate-limit aware** scheduling with priority-based request ordering
+- **Manifest V3** browser extension compatible with Chrome and Firefox
+
+## 🏗️ Building from Source
+
+```bash
+git clone https://github.com/dodoflix/last-meadow-online-automation.git
+cd last-meadow-online-automation
+npm install
+npm run build
+```
+
+Build artifacts are output to `dist/`:
+- `console-script.min.js` — Minified console script
+- `chrome-extension.zip` — Chrome/Edge/Brave extension
+- `firefox-extension.zip` — Firefox extension
+
+### CI/CD
+
+Releases are automated via GitHub Actions. To create a new release:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+This triggers the release workflow which builds all artifacts and creates a GitHub Release.
 
 ## ⚠️ Disclaimer
 

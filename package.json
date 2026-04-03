@@ -1,0 +1,15 @@
+{
+  "name": "last-meadow-online-automation",
+  "version": "1.0.0",
+  "description": "Browser automation tool for Last Meadow Online (Discord)",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.js"
+  },
+  "devDependencies": {
+    "archiver": "^7.0.1",
+    "terser": "^5.37.0"
+  },
+  "author": "dodoflix",
+  "license": "MIT"
+}
