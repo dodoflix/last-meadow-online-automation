@@ -8,7 +8,7 @@
   const old = document.getElementById('lmo-wrap');
   if (old) { old.remove(); return console.log('[LMO] Removed.'); }
 
-  const MIN_W = 320, MAX_W = 600, MIN_H = 380, MAX_H = 800;
+  const MIN_W = 380, MAX_W = 600, MIN_H = 460, MAX_H = 800;
 
   const wrap = document.createElement('div');
   wrap.id = 'lmo-wrap';
@@ -369,6 +369,7 @@
   (function() {
     var resizing = false, sx, sy, sw, sh;
     $('resize-handle').addEventListener('mousedown', function(e) {
+      if (panel.classList.contains('min')) return;
       resizing = true;
       sx = e.clientX; sy = e.clientY;
       sw = wrap.offsetWidth; sh = wrap.offsetHeight;
