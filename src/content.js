@@ -835,14 +835,13 @@
 
   // Check for updates (runs once + every 10 min)
   function checkUpdate() {
-    fetch('https://api.github.com/repos/' + LMO_REPO + '/releases/latest')
+    fetch('https://raw.githubusercontent.com/' + LMO_REPO + '/main/package.json')
       .then(function(r) { return r.ok ? r.json() : null; })
       .then(function(d) {
-        if (!d || !d.tag_name) return;
-        var remote = d.tag_name.replace(/^[^0-9]*/, '');
-        if (remote && remote !== LMO_VERSION) {
+        if (!d || !d.version) return;
+        if (d.version !== LMO_VERSION) {
           var el = $('upd-link');
-          el.textContent = '\uD83C\uDD95 v' + remote;
+          el.textContent = '\uD83C\uDD95 v' + d.version;
           el.classList.add('avail');
         }
       }).catch(function() {});

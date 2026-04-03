@@ -7,6 +7,7 @@ const ROOT = path.resolve(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
 const SRC = path.join(ROOT, 'src', 'content.js');
 const LOADER = path.join(ROOT, 'extension', 'loader.js');
+const BRIDGE = path.join(ROOT, 'extension', 'bridge.js');
 const EXT_DIR = path.join(ROOT, 'extension');
 
 // Clean & create dist
@@ -43,6 +44,7 @@ async function build() {
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_DIR, 'manifest.json'), 'utf8'));
   delete manifest.browser_specific_settings;
   fs.writeFileSync(path.join(chromeTmp, 'manifest.json'), JSON.stringify(manifest, null, 2));
+  fs.copyFileSync(BRIDGE, path.join(chromeTmp, 'bridge.js'));
   fs.copyFileSync(LOADER, path.join(chromeTmp, 'loader.js'));
   for (const icon of fs.readdirSync(path.join(EXT_DIR, 'icons')).filter(f => f.endsWith('.png'))) {
     fs.copyFileSync(path.join(EXT_DIR, 'icons', icon), path.join(chromeTmp, 'icons', icon));
@@ -59,6 +61,7 @@ async function build() {
   fs.writeFileSync(path.join(ffTmp, 'manifest.json'), JSON.stringify(
     JSON.parse(fs.readFileSync(path.join(EXT_DIR, 'manifest.json'), 'utf8')), null, 2
   ));
+  fs.copyFileSync(BRIDGE, path.join(ffTmp, 'bridge.js'));
   fs.copyFileSync(LOADER, path.join(ffTmp, 'loader.js'));
   for (const icon of fs.readdirSync(path.join(EXT_DIR, 'icons')).filter(f => f.endsWith('.png'))) {
     fs.copyFileSync(path.join(EXT_DIR, 'icons', icon), path.join(ffTmp, 'icons', icon));
