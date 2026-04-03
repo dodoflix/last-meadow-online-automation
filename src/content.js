@@ -14,7 +14,7 @@
   wrap.id = 'lmo-wrap';
   Object.assign(wrap.style, {
     position:'fixed',top:'10px',right:'10px',zIndex:'999999',
-    width:'420px',height:'530px',
+    width:MAX_W+'px',height:MAX_H+'px',
   });
   document.body.appendChild(wrap);
   const shadow = wrap.attachShadow({ mode: 'open' });
@@ -452,7 +452,7 @@
     wrap.style.left = (e.clientX - dx) + 'px';
     wrap.style.top = (e.clientY - dy) + 'px';
     wrap.style.right = 'auto';
-  });
+  }, { passive: true });
   document.addEventListener('mouseup', function() { dragging = false; });
 
   // Tab switching
@@ -469,7 +469,7 @@
   });
 
   // Minimize toggle
-  var _lastH = 530;
+  var _lastH = MAX_H;
   $('min-btn').addEventListener('click', function() {
     var isMin = !panel.classList.contains('min');
     panel.classList.toggle('min', isMin);
@@ -609,29 +609,31 @@
     opts = opts || {};
     var successDelay = opts.successDelay || 0;
     var W = { running: false, timer: null, cd: null, nextAt: null, totalWait: 0, runs: 0, ok: 0, fail: 0 };
-    var reqMats = null; // learned from first successful start (keys with negative changes)
+    var reqMats = null;
+    // Cache DOM refs
+    var _logEl = $(prefix + '-log'), _progEl = $(prefix + '-prog');
+    var _nextEl = $(prefix + '-sN'), _dotEl = $(prefix + '-dot');
+    var _runsEl = $(prefix + '-sR'), _okEl = $(prefix + '-sO'), _failEl = $(prefix + '-sF');
 
     function log(m, c) {
       c = c || 'd';
-      var el = $(prefix + '-log');
       var d = document.createElement('div');
       d.innerHTML = '<span class="d">[' + new Date().toLocaleTimeString() + ']</span> <span class="' + c + '">' + m + '</span>';
-      el.appendChild(d);
-      while (el.childNodes.length > 50) el.removeChild(el.firstChild);
-      el.scrollTop = el.scrollHeight;
+      _logEl.appendChild(d);
+      if (_logEl.childNodes.length > 50) _logEl.removeChild(_logEl.firstChild);
+      _logEl.scrollTop = _logEl.scrollHeight;
       if (c !== 'd') bumpBadge(prefix);
     }
     function upStats() {
-      $(prefix + '-sR').textContent = W.runs;
-      $(prefix + '-sO').textContent = W.ok;
-      $(prefix + '-sF').textContent = W.fail;
+      _runsEl.textContent = W.runs;
+      _okEl.textContent = W.ok;
+      _failEl.textContent = W.fail;
     }
-    function setSt(on) { $(prefix + '-dot').classList.toggle('on', on); }
+    function setSt(on) { _dotEl.classList.toggle('on', on); }
 
     async function send(ep) {
       var r = await fetch('https://discord.com/api/v9/gorilla/activity/' + activity + '/' + ep, { method: 'POST', headers: hdrs() });
-      var t = await r.text();
-      var d; try { d = JSON.parse(t); } catch (x) { d = t; }
+      var d; try { d = await r.json(); } catch (x) { d = null; }
       if (r.status === 401) handle401();
       if (d && d.user_data) updateResBar(d.user_data);
       return { status: r.status, ok: r.ok, data: d };
@@ -709,20 +711,17 @@
       setSt(true); log('\uD83D\uDD01 Loop started', 'i');
 
       W.cd = setInterval(function() {
-        var prog = $(prefix + '-prog');
-        if (!W.nextAt) { $(prefix + '-sN').textContent = '-'; prog.style.width = '0'; return; }
+        if (!W.nextAt) { _progEl.style.width = '0'; _nextEl.textContent = '-'; return; }
         var left = Math.max(0, W.nextAt - Date.now());
-        $(prefix + '-sN').textContent = left > 1000 ? Math.round(left / 1000) + 's' : left + 'ms';
-        var total = W.totalWait || 1;
-        var pct = (left / total) * 100;
-        prog.style.width = pct + '%';
-      }, 200);
+        _nextEl.textContent = left > 1000 ? Math.round(left / 1000) + 's' : left + 'ms';
+        _progEl.style.width = ((left / (W.totalWait || 1)) * 100) + '%';
+      }, 1000);
 
       async function tick() {
         if (!W.running) return;
         if (prefix === 'gather' && _gatherPaused) {
           log('\u23F8 Paused \u2014 craft/battle active', 'w');
-          $(prefix + '-sN').textContent = '\u23F8';
+          _nextEl.textContent = '\u23F8';
           await waitGatherResume();
           if (!W.running) return;
           log('\u25B6 Resumed', 'i');
@@ -738,7 +737,7 @@
             }
             if (!missing.length) break;
             log('\u23F3 No materials: ' + missing.join(', '), 'w');
-            $(prefix + '-sN').textContent = '\u23F3';
+            _nextEl.textContent = '\u23F3';
             await new Promise(function(r) { setTimeout(r, 30000); });
             if (!W.running) return;
           }
@@ -765,14 +764,14 @@
     function stopLoop() {
       W.running = false;
       clearTimeout(W.timer); clearInterval(W.cd);
-      W.totalWait = 0; W.nextAt = null; $(prefix + '-sN').textContent = '-';
-      $(prefix + '-prog').style.width = '0';
+      W.totalWait = 0; W.nextAt = null; _nextEl.textContent = '-';
+      _progEl.style.width = '0';
       $(prefix + '-bStart').disabled = false;
       $(prefix + '-bStop').disabled = true;
       setSt(false); log('\u23F9 Stopped', 'w');
     }
     $(prefix + '-bStop').addEventListener('click', stopLoop);
-    $(prefix + '-bClear').addEventListener('click', function() { $(prefix + '-log').innerHTML = ''; });
+    $(prefix + '-bClear').addEventListener('click', function() { _logEl.innerHTML = ''; });
     $(prefix + '-bReset').addEventListener('click', function() {
       var dd = DEFAULTS[prefix];
       $(prefix + '-delay').setAttribute('data-val', dd.delay);
@@ -780,12 +779,11 @@
       $(prefix + '-max').setAttribute('data-val', dd.max);
       $(prefix + '-max').textContent = dd.max;
       W.runs = 0; W.ok = 0; W.fail = 0; upStats();
-      $(prefix + '-log').innerHTML = '';
+      _logEl.innerHTML = '';
       log('\u21BA Reset', 'i');
     });
     $(prefix + '-bExport').addEventListener('click', function() {
-      var logEl = $(prefix + '-log');
-      var text = Array.from(logEl.childNodes).map(function(n) { return n.textContent; }).join('\n');
+      var text = Array.from(_logEl.childNodes).map(function(n) { return n.textContent; }).join('\n');
       if (navigator.clipboard) {
         navigator.clipboard.writeText(text).then(function() { log('\uD83D\uDCCB Log copied!', 'i'); });
       } else {
@@ -817,7 +815,7 @@
 
   // Auto-refresh stats every 60s
   var _statsInterval = setInterval(function() {
-    if (_sniffed && !_authWaiting) fetchStats();
+    if (_sniffed && !_authWaiting && !document.hidden) fetchStats();
   }, 60000);
 
   $('stats-refresh').addEventListener('click', function() {
