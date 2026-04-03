@@ -2,11 +2,11 @@
 
 > ⚠️ For educational purposes only — use at your own risk.
 
-Automates adventure, crafting, and battle cycles for [Last Meadow Online](https://discord.com/) on Discord. Available as a **browser extension** or **console script**.
+Automates adventure, crafting, and battle cycles for [Last Meadow Online](https://discord.com/) on Discord.
 
 ## Installation
 
-### Browser Extension (Recommended)
+### Browser Extension
 
 Download from the [Releases page](https://github.com/dodoflix/last-meadow-online-automation/releases):
 
@@ -20,30 +20,30 @@ Download from the [Releases page](https://github.com/dodoflix/last-meadow-online
 2. Go to `about:debugging#/runtime/this-firefox`
 3. Click **Load Temporary Add-on** → select the zip
 
-The extension auto-updates — it fetches the latest script from GitHub Releases on each page load (cached for 1 hour).
+The extension auto-updates — it always loads the latest script from GitHub on each page load (cached 1 hour). No need to reinstall when a new version is released.
 
 ### Console Script
 
-1. Open [discord.com](https://discord.com) and press `F12` to open DevTools
-2. Go to the **Console** tab
-3. Paste the contents of [`src/content.js`](src/content.js) or `console-script.min.js` from [Releases](https://github.com/dodoflix/last-meadow-online-automation/releases)
+1. Open [discord.com](https://discord.com) and press `F12`
+2. Go to **Console** tab
+3. Paste [`src/content.js`](src/content.js) or `console-script.min.js` from [Releases](https://github.com/dodoflix/last-meadow-online-automation/releases)
 
 Paste again to remove, or click ✕.
 
-## How It Works
+## Usage
 
-Once injected, a floating panel appears with 4 tabs:
+A floating panel appears with 4 tabs:
 
 | Tab | Activity | Cooldown |
 |-----|----------|----------|
 | 🌾 Adventure | Gathering | Instant |
 | ⚒️ Craft | Crafting | 2 min |
 | ⚔️ Battle | Combat | 3 min |
-| 📊 Stats | Profile & server counters | 60s auto-refresh |
+| 📊 Stats | Profile & counters | Auto-refresh |
 
-Credentials are captured automatically — just switch a channel or open a DM after the panel loads.
+Credentials are captured automatically — just interact with Discord (switch channel, open DM) after the panel loads.
 
-Each tab has **Loop**, **Once**, **Stop** controls with configurable retry delay and max runs. Craft & Battle auto-check materials before attempting and pause Adventure during their requests.
+Each tab has **Loop**, **Once**, **Stop** controls with configurable retry delay and max runs. Craft & Battle check materials before attempting and pause Adventure during requests. The footer shows current version and notifies when an update is available.
 
 ## Building
 
@@ -54,9 +54,7 @@ npm install
 npm run build
 ```
 
-Outputs to `dist/`: `console-script.min.js`, `chrome-extension.zip`, `firefox-extension.zip`
-
-Releases are automated with [release-please](https://github.com/googleapis/release-please) — conventional commits on `main` trigger version bumps and artifact builds.
+Releases are automated with [release-please](https://github.com/googleapis/release-please).
 
 ## License
 
