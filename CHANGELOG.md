@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/dodoflix/last-meadow-online-automation/compare/last-meadow-online-automation-v1.2.0...last-meadow-online-automation-v1.3.0) (2026-04-03)
+
+
+### Features
+
+* auto-update extension loader and version footer ([519cbd3](https://github.com/dodoflix/last-meadow-online-automation/commit/519cbd3d915ff72186e788f10fb1bc057703e336))
+
+
+### Bug Fixes
+
+* check for updates periodically every 10 minutes ([82ee1c5](https://github.com/dodoflix/last-meadow-online-automation/commit/82ee1c55bdc2755dc84ef02f42d558c701e2fd2c))
+
 ## [1.2.0](https://github.com/dodoflix/last-meadow-online-automation/compare/last-meadow-online-automation-v1.1.1...last-meadow-online-automation-v1.2.0) (2026-04-03)
 
 
