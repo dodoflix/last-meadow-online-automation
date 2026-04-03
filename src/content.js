@@ -1,6 +1,4 @@
 // Last Meadow Online — Activity Automation Script
-// A Discord-based game automation tool for "Last Meadow Online"
-// ⚠️ FOR EDUCATIONAL PURPOSES ONLY — Use at your own risk.
 // Author: @dodoflix (https://github.com/dodoflix)
 // Repository: https://github.com/dodoflix/last-meadow-online-automation
 // License: MIT
@@ -95,7 +93,6 @@
 #footer a{color:#5865f2;text-decoration:none;font-size:11px;font-weight:600;transition:color .15s}
 #footer a:hover{color:#7983f5}
 #footer .wn{color:#4f5660;font-size:10px}
-#footer .ver{color:#4f5660;font-size:9px;font-weight:600}
 #footer .upd{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;text-decoration:none;transition:all .15s;display:none}
 #footer .upd.avail{display:inline-block;background:rgba(88,101,242,.15);color:#7983f5}
 #footer .upd.avail:hover{background:rgba(88,101,242,.25)}
@@ -302,9 +299,8 @@
     + '</div>'
     + '<div id="footer">'
     + '<a href="https://github.com/dodoflix" target="_blank">@dodoflix</a>'
-    + '<span class="ver">v' + LMO_VERSION + '</span>'
     + '<a id="upd-link" class="upd" href="https://github.com/' + LMO_REPO + '/releases/latest" target="_blank"></a>'
-    + '<span class="wn">\u26A0\uFE0F Educational Only</span>'
+    + '<span class="wn">v' + LMO_VERSION + '</span>'
     + '</div>'
     + '<div class="rh" id="resize-handle"></div>';
   shadow.appendChild(panel);
