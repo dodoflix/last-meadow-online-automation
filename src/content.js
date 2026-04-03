@@ -3,7 +3,7 @@
 // Repository: https://github.com/dodoflix/last-meadow-online-automation
 // License: MIT
 (() => {
-  const LMO_VERSION = '1.3.0'; // x-release-please-version
+  const LMO_VERSION = '1.4.0'; // x-release-please-version
   const LMO_REPO = 'dodoflix/last-meadow-online-automation';
   const old = document.getElementById('lmo-wrap');
   if (old) { old.remove(); return console.log('[LMO] Removed.'); }
