@@ -2,7 +2,7 @@
 // A Discord-based game automation tool for "Last Meadow Online"
 // ⚠️ FOR EDUCATIONAL PURPOSES ONLY — Use at your own risk.
 // Author: @dodoflix (https://github.com/dodoflix)
-// Repository: https://gist.github.com/dodoflix/81d73cda22f043e05ad66c7db44dee19
+// Repository: https://github.com/dodoflix/last-meadow-online-automation
 // License: MIT
 (() => {
   const old = document.getElementById('lmo-wrap');
