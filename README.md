@@ -45,6 +45,11 @@ Credentials are captured automatically — just interact with Discord (switch ch
 
 Each tab has **Loop**, **Once**, **Stop** controls with configurable retry delay and max runs. Craft & Battle check materials before attempting and pause Adventure during requests. The footer shows current version and notifies when an update is available.
 
+## Screenshots
+
+![Farm](resources/farm.png)
+![Stats](resources/stats.png)
+
 ## Building
 
 ```bash
